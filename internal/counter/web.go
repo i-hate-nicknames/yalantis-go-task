@@ -1,8 +1,8 @@
 package counter
 
 import (
-	"log"
 	"net/http"
+	"strconv"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +18,7 @@ type App struct {
 func StartApp() {
 	app := &App{}
 	r := gin.Default()
+	r.LoadHTMLGlob("web/templates/*")
 	r.GET("/", func(c *gin.Context) {
 		if !hasVisited(c) {
 			setVisited(c)
@@ -25,15 +26,14 @@ func StartApp() {
 			app.numClients++
 			app.mux.Unlock()
 		}
-		log.Println("Serving response!")
-		c.JSON(http.StatusOK, gin.H{
-			"clients": app.numClients,
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"totalClients": strconv.Itoa(app.numClients),
 		})
 	})
 	r.Run(":8080")
 }
 
-// true if user has visited cookie
+// set is visited cookie
 func setVisited(c *gin.Context) {
 	// todo: secure cookie
 	cookie := &http.Cookie{Name: visitedCookieName, Value: "1"}
